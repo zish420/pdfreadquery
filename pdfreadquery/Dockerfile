@@ -1,0 +1,19 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+USER root
+WORKDIR /App
+ 
+COPY . ./
+ 
+RUN dotnet restore
+# Build and publish a release
+RUN dotnet publish -c Release -o out
+ 
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 as runner
+ENV ASPNETCORE_ENVIRONMENT=Staging
+USER root
+WORKDIR /App
+COPY --from=build /App/out .
+ENTRYPOINT ["dotnet", "KuSaka.dll"]
+EXPOSE 80
+#EXPOSE 7000/tcp 
